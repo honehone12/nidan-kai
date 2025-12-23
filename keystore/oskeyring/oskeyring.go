@@ -7,6 +7,8 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
+type OsKeyring struct{}
+
 func getEnv() (string, string, error) {
 	// don't inject other than env
 	// to prevent exposing sensitive info
@@ -25,7 +27,7 @@ func getEnv() (string, string, error) {
 	return svc, usr, nil
 }
 
-func Set(value string) error {
+func (o OsKeyring) Set(value string) error {
 	// don't use this func for testing other modules
 	// i mean don't create new password for testing
 	// just load existing password instead
@@ -38,7 +40,7 @@ func Set(value string) error {
 	return keyring.Set(svc, usr, value)
 }
 
-func Get() (string, error) {
+func (o OsKeyring) Get() (string, error) {
 	svc, usr, err := getEnv()
 	if err != nil {
 		return "", err
