@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +19,48 @@ type MfaQrCreate struct {
 	config
 	mutation *MfaQrMutation
 	hooks    []Hook
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (_c *MfaQrCreate) SetCreatedAt(v time.Time) *MfaQrCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *MfaQrCreate) SetNillableCreatedAt(v *time.Time) *MfaQrCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_c *MfaQrCreate) SetUpdatedAt(v time.Time) *MfaQrCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *MfaQrCreate) SetNillableUpdatedAt(v *time.Time) *MfaQrCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_c *MfaQrCreate) SetDeletedAt(v time.Time) *MfaQrCreate {
+	_c.mutation.SetDeletedAt(v)
+	return _c
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_c *MfaQrCreate) SetNillableDeletedAt(v *time.Time) *MfaQrCreate {
+	if v != nil {
+		_c.SetDeletedAt(*v)
+	}
+	return _c
 }
 
 // SetSecret sets the "secret" field.
@@ -50,6 +93,7 @@ func (_c *MfaQrCreate) Mutation() *MfaQrMutation {
 
 // Save creates the MfaQr in the database.
 func (_c *MfaQrCreate) Save(ctx context.Context) (*MfaQr, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -75,8 +119,26 @@ func (_c *MfaQrCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *MfaQrCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := mfaqr.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := mfaqr.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *MfaQrCreate) check() error {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "MfaQr.created_at"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "MfaQr.updated_at"`)}
+	}
 	if _, ok := _c.mutation.Secret(); !ok {
 		return &ValidationError{Name: "secret", err: errors.New(`ent: missing required field "MfaQr.secret"`)}
 	}
@@ -136,6 +198,18 @@ func (_c *MfaQrCreate) createSpec() (*MfaQr, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(mfaqr.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(mfaqr.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.DeletedAt(); ok {
+		_spec.SetField(mfaqr.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
+	}
 	if value, ok := _c.mutation.Secret(); ok {
 		_spec.SetField(mfaqr.FieldSecret, field.TypeBytes, value)
 		_node.Secret = value
@@ -178,6 +252,7 @@ func (_c *MfaQrCreateBulk) Save(ctx context.Context) ([]*MfaQr, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*MfaQrMutation)
 				if !ok {

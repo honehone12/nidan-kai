@@ -298,12 +298,12 @@ func (_q *MfaQrQuery) WithUser(opts ...func(*UserQuery)) *MfaQrQuery {
 // Example:
 //
 //	var v []struct {
-//		Secret []byte `json:"secret,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MfaQr.Query().
-//		GroupBy(mfaqr.FieldSecret).
+//		GroupBy(mfaqr.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *MfaQrQuery) GroupBy(field string, fields ...string) *MfaQrGroupBy {
@@ -321,11 +321,11 @@ func (_q *MfaQrQuery) GroupBy(field string, fields ...string) *MfaQrGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Secret []byte `json:"secret,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.MfaQr.Query().
-//		Select(mfaqr.FieldSecret).
+//		Select(mfaqr.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (_q *MfaQrQuery) Select(fields ...string) *MfaQrSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

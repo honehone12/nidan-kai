@@ -23,7 +23,7 @@ func (MfaQr) Fields() []ent.Field {
 		field.Bytes("secret").
 			NotEmpty().
 			Immutable().
-			MinLen(16).
+			MinLen(32).
 			MaxLen(256).
 			SchemaType(map[string]string{dialect.MySQL: "varbinary"}),
 		field.String("user_id").
@@ -45,7 +45,7 @@ func (MfaQr) Edges() []ent.Edge {
 	}
 }
 
-func (MfaQr) MixIn() []ent.Mixin {
+func (MfaQr) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		Time{},
 	}

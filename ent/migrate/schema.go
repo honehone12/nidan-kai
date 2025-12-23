@@ -11,6 +11,9 @@ var (
 	// MfaQrsColumns holds the columns for the "mfa_qrs" table.
 	MfaQrsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"mysql": "binary(16)"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "secret", Type: field.TypeBytes, Size: 256, SchemaType: map[string]string{"mysql": "varbinary"}},
 		{Name: "user_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "binary(16)"}},
 	}
@@ -22,7 +25,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "mfa_qrs_users_mfa_qrs",
-				Columns:    []*schema.Column{MfaQrsColumns[2]},
+				Columns:    []*schema.Column{MfaQrsColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

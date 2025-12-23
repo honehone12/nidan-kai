@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,32 @@ func (_u *MfaQrUpdate) Where(ps ...predicate.MfaQr) *MfaQrUpdate {
 	return _u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *MfaQrUpdate) SetUpdatedAt(v time.Time) *MfaQrUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *MfaQrUpdate) SetDeletedAt(v time.Time) *MfaQrUpdate {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *MfaQrUpdate) SetNillableDeletedAt(v *time.Time) *MfaQrUpdate {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *MfaQrUpdate) ClearDeletedAt() *MfaQrUpdate {
+	_u.mutation.ClearDeletedAt()
+	return _u
+}
+
 // Mutation returns the MfaQrMutation object of the builder.
 func (_u *MfaQrUpdate) Mutation() *MfaQrMutation {
 	return _u.mutation
@@ -34,6 +61,7 @@ func (_u *MfaQrUpdate) Mutation() *MfaQrMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *MfaQrUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -59,6 +87,14 @@ func (_u *MfaQrUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *MfaQrUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := mfaqr.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_u *MfaQrUpdate) check() error {
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
@@ -79,6 +115,15 @@ func (_u *MfaQrUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(mfaqr.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(mfaqr.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(mfaqr.FieldDeletedAt, field.TypeTime)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{mfaqr.Label}
@@ -97,6 +142,32 @@ type MfaQrUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MfaQrMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *MfaQrUpdateOne) SetUpdatedAt(v time.Time) *MfaQrUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *MfaQrUpdateOne) SetDeletedAt(v time.Time) *MfaQrUpdateOne {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *MfaQrUpdateOne) SetNillableDeletedAt(v *time.Time) *MfaQrUpdateOne {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *MfaQrUpdateOne) ClearDeletedAt() *MfaQrUpdateOne {
+	_u.mutation.ClearDeletedAt()
+	return _u
 }
 
 // Mutation returns the MfaQrMutation object of the builder.
@@ -119,6 +190,7 @@ func (_u *MfaQrUpdateOne) Select(field string, fields ...string) *MfaQrUpdateOne
 
 // Save executes the query and returns the updated MfaQr entity.
 func (_u *MfaQrUpdateOne) Save(ctx context.Context) (*MfaQr, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -141,6 +213,14 @@ func (_u *MfaQrUpdateOne) Exec(ctx context.Context) error {
 func (_u *MfaQrUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *MfaQrUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := mfaqr.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -180,6 +260,15 @@ func (_u *MfaQrUpdateOne) sqlSave(ctx context.Context) (_node *MfaQr, err error)
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(mfaqr.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(mfaqr.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(mfaqr.FieldDeletedAt, field.TypeTime)
 	}
 	_node = &MfaQr{config: _u.config}
 	_spec.Assign = _node.assignValues

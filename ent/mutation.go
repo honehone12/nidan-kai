@@ -35,6 +35,9 @@ type MfaQrMutation struct {
 	op            Op
 	typ           string
 	id            *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
 	secret        *[]byte
 	clearedFields map[string]struct{}
 	user          *string
@@ -146,6 +149,127 @@ func (m *MfaQrMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MfaQrMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MfaQrMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MfaQr entity.
+// If the MfaQr object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MfaQrMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MfaQrMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MfaQrMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MfaQrMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MfaQr entity.
+// If the MfaQr object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MfaQrMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MfaQrMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *MfaQrMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *MfaQrMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the MfaQr entity.
+// If the MfaQr object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MfaQrMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *MfaQrMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[mfaqr.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *MfaQrMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[mfaqr.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *MfaQrMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, mfaqr.FieldDeletedAt)
 }
 
 // SetSecret sets the "secret" field.
@@ -281,7 +405,16 @@ func (m *MfaQrMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MfaQrMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, mfaqr.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, mfaqr.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, mfaqr.FieldDeletedAt)
+	}
 	if m.secret != nil {
 		fields = append(fields, mfaqr.FieldSecret)
 	}
@@ -296,6 +429,12 @@ func (m *MfaQrMutation) Fields() []string {
 // schema.
 func (m *MfaQrMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case mfaqr.FieldCreatedAt:
+		return m.CreatedAt()
+	case mfaqr.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case mfaqr.FieldDeletedAt:
+		return m.DeletedAt()
 	case mfaqr.FieldSecret:
 		return m.Secret()
 	case mfaqr.FieldUserID:
@@ -309,6 +448,12 @@ func (m *MfaQrMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MfaQrMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case mfaqr.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case mfaqr.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case mfaqr.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
 	case mfaqr.FieldSecret:
 		return m.OldSecret(ctx)
 	case mfaqr.FieldUserID:
@@ -322,6 +467,27 @@ func (m *MfaQrMutation) OldField(ctx context.Context, name string) (ent.Value, e
 // type.
 func (m *MfaQrMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case mfaqr.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case mfaqr.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case mfaqr.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
 	case mfaqr.FieldSecret:
 		v, ok := value.([]byte)
 		if !ok {
@@ -365,7 +531,11 @@ func (m *MfaQrMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MfaQrMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(mfaqr.FieldDeletedAt) {
+		fields = append(fields, mfaqr.FieldDeletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -378,6 +548,11 @@ func (m *MfaQrMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MfaQrMutation) ClearField(name string) error {
+	switch name {
+	case mfaqr.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown MfaQr nullable field %s", name)
 }
 
@@ -385,6 +560,15 @@ func (m *MfaQrMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MfaQrMutation) ResetField(name string) error {
 	switch name {
+	case mfaqr.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case mfaqr.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case mfaqr.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
 	case mfaqr.FieldSecret:
 		m.ResetSecret()
 		return nil

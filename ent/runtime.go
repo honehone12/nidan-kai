@@ -13,8 +13,21 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	mfaqrMixin := schema.MfaQr{}.Mixin()
+	mfaqrMixinFields0 := mfaqrMixin[0].Fields()
+	_ = mfaqrMixinFields0
 	mfaqrFields := schema.MfaQr{}.Fields()
 	_ = mfaqrFields
+	// mfaqrDescCreatedAt is the schema descriptor for created_at field.
+	mfaqrDescCreatedAt := mfaqrMixinFields0[0].Descriptor()
+	// mfaqr.DefaultCreatedAt holds the default value on creation for the created_at field.
+	mfaqr.DefaultCreatedAt = mfaqrDescCreatedAt.Default.(func() time.Time)
+	// mfaqrDescUpdatedAt is the schema descriptor for updated_at field.
+	mfaqrDescUpdatedAt := mfaqrMixinFields0[1].Descriptor()
+	// mfaqr.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	mfaqr.DefaultUpdatedAt = mfaqrDescUpdatedAt.Default.(func() time.Time)
+	// mfaqr.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	mfaqr.UpdateDefaultUpdatedAt = mfaqrDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// mfaqrDescSecret is the schema descriptor for secret field.
 	mfaqrDescSecret := mfaqrFields[1].Descriptor()
 	// mfaqr.SecretValidator is a validator for the "secret" field. It is called by the builders before save.
