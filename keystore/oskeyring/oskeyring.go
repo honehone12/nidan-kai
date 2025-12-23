@@ -27,19 +27,6 @@ func getEnv() (string, string, error) {
 	return svc, usr, nil
 }
 
-func (o OsKeyring) Set(value string) error {
-	// don't use this func for testing other modules
-	// i mean don't create new password for testing
-	// just load existing password instead
-
-	svc, usr, err := getEnv()
-	if err != nil {
-		return err
-	}
-
-	return keyring.Set(svc, usr, value)
-}
-
 func (o OsKeyring) Get() (string, error) {
 	svc, usr, err := getEnv()
 	if err != nil {
