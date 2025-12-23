@@ -3,8 +3,10 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // MfaQr holds the schema definition for the MfaQr entity.
@@ -42,6 +44,15 @@ func (MfaQr) Edges() []ent.Edge {
 			Required().
 			Immutable().
 			Unique(),
+	}
+}
+
+func (MfaQr) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id", "created_at").
+			Annotations(entsql.IndexAnnotation{
+				DescColumns: map[string]bool{"created_at": true},
+			}),
 	}
 }
 

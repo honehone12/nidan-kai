@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -28,6 +29,18 @@ var (
 				Columns:    []*schema.Column{MfaQrsColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "mfaqr_user_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{MfaQrsColumns[5], MfaQrsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					DescColumns: map[string]bool{
+						MfaQrsColumns[1].Name: true,
+					},
+				},
 			},
 		},
 	}
