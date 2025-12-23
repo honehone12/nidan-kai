@@ -1,5 +1,8 @@
 package keystore
 
+const KEY_SIZE = 32
+
 type Keystore interface {
-	Get() (string, error)
+	Init() error
+	GetKey() ([]byte, error)
 }

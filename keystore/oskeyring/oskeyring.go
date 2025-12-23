@@ -1,7 +1,9 @@
 package oskeyring
 
 import (
+	"encoding/base64"
 	"errors"
+	"nidan-kai/keystore"
 	"os"
 
 	"github.com/zalando/go-keyring"
@@ -27,11 +29,30 @@ func getEnv() (string, string, error) {
 	return svc, usr, nil
 }
 
-func (o OsKeyring) Get() (string, error) {
+func (o OsKeyring) Init() error {
+	_, _, err := getEnv()
+	return err
+}
+
+func (o OsKeyring) GetKey() ([]byte, error) {
 	svc, usr, err := getEnv()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return keyring.Get(svc, usr)
+	s, err := keyring.Get(svc, usr)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(b) != keystore.KEY_SIZE {
+		return nil, errors.New("unexpected key size")
+	}
+
+	return b, nil
 }
