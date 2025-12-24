@@ -66,10 +66,6 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// SecretValidator is a validator for the "secret" field. It is called by the builders before save.
 	SecretValidator func([]byte) error
-	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(string) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the MfaQr queries.

@@ -9,6 +9,7 @@ import (
 	"log"
 	"reflect"
 
+	"nidan-kai/binid"
 	"nidan-kai/ent/migrate"
 
 	"nidan-kai/ent/mfaqr"
@@ -269,7 +270,7 @@ func (c *MfaQrClient) UpdateOne(_m *MfaQr) *MfaQrUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *MfaQrClient) UpdateOneID(id string) *MfaQrUpdateOne {
+func (c *MfaQrClient) UpdateOneID(id binid.BinId) *MfaQrUpdateOne {
 	mutation := newMfaQrMutation(c.config, OpUpdateOne, withMfaQrID(id))
 	return &MfaQrUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -286,7 +287,7 @@ func (c *MfaQrClient) DeleteOne(_m *MfaQr) *MfaQrDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *MfaQrClient) DeleteOneID(id string) *MfaQrDeleteOne {
+func (c *MfaQrClient) DeleteOneID(id binid.BinId) *MfaQrDeleteOne {
 	builder := c.Delete().Where(mfaqr.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -303,12 +304,12 @@ func (c *MfaQrClient) Query() *MfaQrQuery {
 }
 
 // Get returns a MfaQr entity by its id.
-func (c *MfaQrClient) Get(ctx context.Context, id string) (*MfaQr, error) {
+func (c *MfaQrClient) Get(ctx context.Context, id binid.BinId) (*MfaQr, error) {
 	return c.Query().Where(mfaqr.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *MfaQrClient) GetX(ctx context.Context, id string) *MfaQr {
+func (c *MfaQrClient) GetX(ctx context.Context, id binid.BinId) *MfaQr {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -418,7 +419,7 @@ func (c *UserClient) UpdateOne(_m *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id string) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id binid.BinId) *UserUpdateOne {
 	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -435,7 +436,7 @@ func (c *UserClient) DeleteOne(_m *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserClient) DeleteOneID(id string) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id binid.BinId) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -452,12 +453,12 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id string) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id binid.BinId) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id string) *User {
+func (c *UserClient) GetX(ctx context.Context, id binid.BinId) *User {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

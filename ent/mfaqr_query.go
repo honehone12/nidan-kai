@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"nidan-kai/binid"
 	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/predicate"
 	"nidan-kai/ent/user"
@@ -106,8 +107,8 @@ func (_q *MfaQrQuery) FirstX(ctx context.Context) *MfaQr {
 
 // FirstID returns the first MfaQr ID from the query.
 // Returns a *NotFoundError when no MfaQr ID was found.
-func (_q *MfaQrQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (_q *MfaQrQuery) FirstID(ctx context.Context) (id binid.BinId, err error) {
+	var ids []binid.BinId
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -119,7 +120,7 @@ func (_q *MfaQrQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *MfaQrQuery) FirstIDX(ctx context.Context) string {
+func (_q *MfaQrQuery) FirstIDX(ctx context.Context) binid.BinId {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -157,8 +158,8 @@ func (_q *MfaQrQuery) OnlyX(ctx context.Context) *MfaQr {
 // OnlyID is like Only, but returns the only MfaQr ID in the query.
 // Returns a *NotSingularError when more than one MfaQr ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *MfaQrQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (_q *MfaQrQuery) OnlyID(ctx context.Context) (id binid.BinId, err error) {
+	var ids []binid.BinId
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -174,7 +175,7 @@ func (_q *MfaQrQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *MfaQrQuery) OnlyIDX(ctx context.Context) string {
+func (_q *MfaQrQuery) OnlyIDX(ctx context.Context) binid.BinId {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -202,7 +203,7 @@ func (_q *MfaQrQuery) AllX(ctx context.Context) []*MfaQr {
 }
 
 // IDs executes the query and returns a list of MfaQr IDs.
-func (_q *MfaQrQuery) IDs(ctx context.Context) (ids []string, err error) {
+func (_q *MfaQrQuery) IDs(ctx context.Context) (ids []binid.BinId, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -214,7 +215,7 @@ func (_q *MfaQrQuery) IDs(ctx context.Context) (ids []string, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *MfaQrQuery) IDsX(ctx context.Context) []string {
+func (_q *MfaQrQuery) IDsX(ctx context.Context) []binid.BinId {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -402,8 +403,8 @@ func (_q *MfaQrQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MfaQr,
 }
 
 func (_q *MfaQrQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*MfaQr, init func(*MfaQr), assign func(*MfaQr, *User)) error {
-	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*MfaQr)
+	ids := make([]binid.BinId, 0, len(nodes))
+	nodeids := make(map[binid.BinId][]*MfaQr)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
@@ -441,7 +442,7 @@ func (_q *MfaQrQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *MfaQrQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(mfaqr.Table, mfaqr.Columns, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeString))
+	_spec := sqlgraph.NewQuerySpec(mfaqr.Table, mfaqr.Columns, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

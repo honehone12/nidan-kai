@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"nidan-kai/binid"
 	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/user"
 	"strings"
@@ -17,7 +18,7 @@ import (
 type MfaQr struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID binid.BinId `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -27,7 +28,7 @@ type MfaQr struct {
 	// Secret holds the value of the "secret" field.
 	Secret []byte `json:"secret,omitempty"`
 	// UserID holds the value of the "user_id" field.
-	UserID string `json:"user_id,omitempty"`
+	UserID binid.BinId `json:"user_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MfaQrQuery when eager-loading is set.
 	Edges        MfaQrEdges `json:"edges"`
@@ -62,7 +63,7 @@ func (*MfaQr) scanValues(columns []string) ([]any, error) {
 		case mfaqr.FieldSecret:
 			values[i] = new([]byte)
 		case mfaqr.FieldID, mfaqr.FieldUserID:
-			values[i] = new(sql.NullString)
+			values[i] = new(binid.BinId)
 		case mfaqr.FieldCreatedAt, mfaqr.FieldUpdatedAt, mfaqr.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
@@ -81,10 +82,10 @@ func (_m *MfaQr) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case mfaqr.FieldID:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*binid.BinId); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value.Valid {
-				_m.ID = value.String
+			} else if value != nil {
+				_m.ID = *value
 			}
 		case mfaqr.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -112,10 +113,10 @@ func (_m *MfaQr) assignValues(columns []string, values []any) error {
 				_m.Secret = *value
 			}
 		case mfaqr.FieldUserID:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*binid.BinId); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
-			} else if value.Valid {
-				_m.UserID = value.String
+			} else if value != nil {
+				_m.UserID = *value
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -173,7 +174,7 @@ func (_m *MfaQr) String() string {
 	builder.WriteString(fmt.Sprintf("%v", _m.Secret))
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
-	builder.WriteString(_m.UserID)
+	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
 	builder.WriteByte(')')
 	return builder.String()
 }

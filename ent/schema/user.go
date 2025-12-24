@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"nidan-kai/binid"
 	"nidan-kai/loginmethod"
 
 	"entgo.io/ent"
@@ -18,8 +19,7 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").
-			NotEmpty().
+		field.UUID("id", binid.BinId{}).
 			Immutable().
 			Unique().
 			SchemaType(map[string]string{dialect.MySQL: "binary(16)"}),

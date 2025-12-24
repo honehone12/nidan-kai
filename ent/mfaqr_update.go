@@ -107,7 +107,7 @@ func (_u *MfaQrUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(mfaqr.Table, mfaqr.Columns, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(mfaqr.Table, mfaqr.Columns, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -236,7 +236,7 @@ func (_u *MfaQrUpdateOne) sqlSave(ctx context.Context) (_node *MfaQr, err error)
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(mfaqr.Table, mfaqr.Columns, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(mfaqr.Table, mfaqr.Columns, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MfaQr.id" for update`)}

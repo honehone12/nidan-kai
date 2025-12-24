@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
+	"nidan-kai/binid"
 	"nidan-kai/ent"
 	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/user"
-	"nidan-kai/id"
 	"nidan-kai/keystore"
 	"nidan-kai/loginmethod"
 	"nidan-kai/secret"
@@ -32,7 +32,7 @@ func NewEncrypteDB(
 	return &EncrypteDB{ent, keystore}, nil
 }
 
-func (e *EncrypteDB) GetSecret(ctx context.Context, id id.Id) ([]byte, error) {
+func (e *EncrypteDB) GetSecret(ctx context.Context, id binid.BinId) ([]byte, error) {
 	enc, err := e.query(ctx, id)
 	if err != nil {
 		return nil, err
@@ -67,11 +67,11 @@ func (e *EncrypteDB) decrypt(enc []byte) ([]byte, error) {
 	return dec, nil
 }
 
-func (e *EncrypteDB) query(ctx context.Context, userId id.Id) ([]byte, error) {
+func (e *EncrypteDB) query(ctx context.Context, userId binid.BinId) ([]byte, error) {
 	u, err := e.ent.User.Query().
 		Select(user.FieldLoginMethod).
 		Where(
-			user.ID(string(userId)),
+			user.ID(userId),
 			user.DeletedAtIsNil(),
 		).
 		WithMfaQrs(func(q *ent.MfaQrQuery) {
@@ -101,7 +101,7 @@ func (e *EncrypteDB) query(ctx context.Context, userId id.Id) ([]byte, error) {
 
 func (e *EncrypteDB) SetSecret(
 	ctx context.Context,
-	id id.Id,
+	id binid.BinId,
 	value []byte,
 ) error {
 	enc, err := e.encrypt(value)
@@ -134,17 +134,17 @@ func (e *EncrypteDB) encrypt(value []byte) ([]byte, error) {
 
 func (e *EncrypteDB) insert(
 	ctx context.Context,
-	userId id.Id,
+	userId binid.BinId,
 	value []byte,
 ) error {
-	id, err := id.NewSequential()
+	id, err := binid.NewSequential()
 	if err != nil {
 		return err
 	}
 
 	return e.ent.MfaQr.Create().
-		SetID(string(id)).
+		SetID(id).
 		SetSecret(value).
-		SetUserID(string(userId)).
+		SetUserID(userId).
 		Exec(ctx)
 }

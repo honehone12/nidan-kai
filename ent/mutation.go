@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"nidan-kai/binid"
 	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/predicate"
 	"nidan-kai/ent/user"
@@ -34,13 +35,13 @@ type MfaQrMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *string
+	id            *binid.BinId
 	created_at    *time.Time
 	updated_at    *time.Time
 	deleted_at    *time.Time
 	secret        *[]byte
 	clearedFields map[string]struct{}
-	user          *string
+	user          *binid.BinId
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*MfaQr, error)
@@ -67,7 +68,7 @@ func newMfaQrMutation(c config, op Op, opts ...mfaqrOption) *MfaQrMutation {
 }
 
 // withMfaQrID sets the ID field of the mutation.
-func withMfaQrID(id string) mfaqrOption {
+func withMfaQrID(id binid.BinId) mfaqrOption {
 	return func(m *MfaQrMutation) {
 		var (
 			err   error
@@ -119,13 +120,13 @@ func (m MfaQrMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of MfaQr entities.
-func (m *MfaQrMutation) SetID(id string) {
+func (m *MfaQrMutation) SetID(id binid.BinId) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *MfaQrMutation) ID() (id string, exists bool) {
+func (m *MfaQrMutation) ID() (id binid.BinId, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -136,12 +137,12 @@ func (m *MfaQrMutation) ID() (id string, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *MfaQrMutation) IDs(ctx context.Context) ([]string, error) {
+func (m *MfaQrMutation) IDs(ctx context.Context) ([]binid.BinId, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []string{id}, nil
+			return []binid.BinId{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -309,12 +310,12 @@ func (m *MfaQrMutation) ResetSecret() {
 }
 
 // SetUserID sets the "user_id" field.
-func (m *MfaQrMutation) SetUserID(s string) {
-	m.user = &s
+func (m *MfaQrMutation) SetUserID(bi binid.BinId) {
+	m.user = &bi
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *MfaQrMutation) UserID() (r string, exists bool) {
+func (m *MfaQrMutation) UserID() (r binid.BinId, exists bool) {
 	v := m.user
 	if v == nil {
 		return
@@ -325,7 +326,7 @@ func (m *MfaQrMutation) UserID() (r string, exists bool) {
 // OldUserID returns the old "user_id" field's value of the MfaQr entity.
 // If the MfaQr object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MfaQrMutation) OldUserID(ctx context.Context) (v string, err error) {
+func (m *MfaQrMutation) OldUserID(ctx context.Context) (v binid.BinId, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -358,7 +359,7 @@ func (m *MfaQrMutation) UserCleared() bool {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *MfaQrMutation) UserIDs() (ids []string) {
+func (m *MfaQrMutation) UserIDs() (ids []binid.BinId) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -496,7 +497,7 @@ func (m *MfaQrMutation) SetField(name string, value ent.Value) error {
 		m.SetSecret(v)
 		return nil
 	case mfaqr.FieldUserID:
-		v, ok := value.(string)
+		v, ok := value.(binid.BinId)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -658,7 +659,7 @@ type UserMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *string
+	id             *binid.BinId
 	created_at     *time.Time
 	updated_at     *time.Time
 	deleted_at     *time.Time
@@ -666,8 +667,8 @@ type UserMutation struct {
 	email          *string
 	login_method   *user.LoginMethod
 	clearedFields  map[string]struct{}
-	mfa_qrs        map[string]struct{}
-	removedmfa_qrs map[string]struct{}
+	mfa_qrs        map[binid.BinId]struct{}
+	removedmfa_qrs map[binid.BinId]struct{}
 	clearedmfa_qrs bool
 	done           bool
 	oldValue       func(context.Context) (*User, error)
@@ -694,7 +695,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id string) userOption {
+func withUserID(id binid.BinId) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -746,13 +747,13 @@ func (m UserMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of User entities.
-func (m *UserMutation) SetID(id string) {
+func (m *UserMutation) SetID(id binid.BinId) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id string, exists bool) {
+func (m *UserMutation) ID() (id binid.BinId, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -763,12 +764,12 @@ func (m *UserMutation) ID() (id string, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]string, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]binid.BinId, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []string{id}, nil
+			return []binid.BinId{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1008,9 +1009,9 @@ func (m *UserMutation) ResetLoginMethod() {
 }
 
 // AddMfaQrIDs adds the "mfa_qrs" edge to the MfaQr entity by ids.
-func (m *UserMutation) AddMfaQrIDs(ids ...string) {
+func (m *UserMutation) AddMfaQrIDs(ids ...binid.BinId) {
 	if m.mfa_qrs == nil {
-		m.mfa_qrs = make(map[string]struct{})
+		m.mfa_qrs = make(map[binid.BinId]struct{})
 	}
 	for i := range ids {
 		m.mfa_qrs[ids[i]] = struct{}{}
@@ -1028,9 +1029,9 @@ func (m *UserMutation) MfaQrsCleared() bool {
 }
 
 // RemoveMfaQrIDs removes the "mfa_qrs" edge to the MfaQr entity by IDs.
-func (m *UserMutation) RemoveMfaQrIDs(ids ...string) {
+func (m *UserMutation) RemoveMfaQrIDs(ids ...binid.BinId) {
 	if m.removedmfa_qrs == nil {
-		m.removedmfa_qrs = make(map[string]struct{})
+		m.removedmfa_qrs = make(map[binid.BinId]struct{})
 	}
 	for i := range ids {
 		delete(m.mfa_qrs, ids[i])
@@ -1039,7 +1040,7 @@ func (m *UserMutation) RemoveMfaQrIDs(ids ...string) {
 }
 
 // RemovedMfaQrs returns the removed IDs of the "mfa_qrs" edge to the MfaQr entity.
-func (m *UserMutation) RemovedMfaQrsIDs() (ids []string) {
+func (m *UserMutation) RemovedMfaQrsIDs() (ids []binid.BinId) {
 	for id := range m.removedmfa_qrs {
 		ids = append(ids, id)
 	}
@@ -1047,7 +1048,7 @@ func (m *UserMutation) RemovedMfaQrsIDs() (ids []string) {
 }
 
 // MfaQrsIDs returns the "mfa_qrs" edge IDs in the mutation.
-func (m *UserMutation) MfaQrsIDs() (ids []string) {
+func (m *UserMutation) MfaQrsIDs() (ids []binid.BinId) {
 	for id := range m.mfa_qrs {
 		ids = append(ids, id)
 	}

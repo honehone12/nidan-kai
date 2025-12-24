@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"nidan-kai/binid"
 	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/user"
 	"time"
@@ -70,13 +71,13 @@ func (_c *MfaQrCreate) SetSecret(v []byte) *MfaQrCreate {
 }
 
 // SetUserID sets the "user_id" field.
-func (_c *MfaQrCreate) SetUserID(v string) *MfaQrCreate {
+func (_c *MfaQrCreate) SetUserID(v binid.BinId) *MfaQrCreate {
 	_c.mutation.SetUserID(v)
 	return _c
 }
 
 // SetID sets the "id" field.
-func (_c *MfaQrCreate) SetID(v string) *MfaQrCreate {
+func (_c *MfaQrCreate) SetID(v binid.BinId) *MfaQrCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
@@ -150,16 +151,6 @@ func (_c *MfaQrCreate) check() error {
 	if _, ok := _c.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "MfaQr.user_id"`)}
 	}
-	if v, ok := _c.mutation.UserID(); ok {
-		if err := mfaqr.UserIDValidator(v); err != nil {
-			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "MfaQr.user_id": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := mfaqr.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "MfaQr.id": %w`, err)}
-		}
-	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "MfaQr.user"`)}
 	}
@@ -178,10 +169,10 @@ func (_c *MfaQrCreate) sqlSave(ctx context.Context) (*MfaQr, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(string); ok {
-			_node.ID = id
-		} else {
-			return nil, fmt.Errorf("unexpected MfaQr.ID type: %T", _spec.ID.Value)
+		if id, ok := _spec.ID.Value.(*binid.BinId); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
 		}
 	}
 	_c.mutation.id = &_node.ID
@@ -192,11 +183,11 @@ func (_c *MfaQrCreate) sqlSave(ctx context.Context) (*MfaQr, error) {
 func (_c *MfaQrCreate) createSpec() (*MfaQr, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MfaQr{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(mfaqr.Table, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeString))
+		_spec = sqlgraph.NewCreateSpec(mfaqr.Table, sqlgraph.NewFieldSpec(mfaqr.FieldID, field.TypeUUID))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(mfaqr.FieldCreatedAt, field.TypeTime, value)
@@ -222,7 +213,7 @@ func (_c *MfaQrCreate) createSpec() (*MfaQr, *sqlgraph.CreateSpec) {
 			Columns: []string{mfaqr.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

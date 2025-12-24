@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"log"
+	"nidan-kai/binid"
 	"nidan-kai/ent"
-	"nidan-kai/id"
 	"os"
 
 	"github.com/go-playground/validator/v10"
@@ -47,14 +47,14 @@ func main() {
 	}
 	defer client.Close()
 
-	id, err := id.NewSequential()
+	id, err := binid.NewSequential()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	ctx := context.Background()
 	app, err := client.User.Create().
-		SetID(string(id)).
+		SetID(id).
 		SetName(args.Name).
 		SetEmail(args.Email).
 		Save(ctx)
@@ -62,14 +62,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	uuid, err := id.ToUUID()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	log.Printf(
 		"created user id: %s name: %s email: %s\n",
-		uuid.String(),
+		id.String(),
 		app.Name,
 		app.Email,
 	)

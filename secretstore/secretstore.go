@@ -2,14 +2,14 @@ package secretstore
 
 import (
 	"context"
-	"nidan-kai/id"
+	"nidan-kai/binid"
 )
 
 type SecretStore interface {
-	GetSecret(ctx context.Context, id id.Id) ([]byte, error)
+	GetSecret(ctx context.Context, id binid.BinId) ([]byte, error)
 	SetSecret(
 		ctx context.Context,
-		id id.Id,
+		id binid.BinId,
 		value []byte,
 	) error
 }

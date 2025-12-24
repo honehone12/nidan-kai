@@ -47,14 +47,6 @@ func init() {
 			return nil
 		}
 	}()
-	// mfaqrDescUserID is the schema descriptor for user_id field.
-	mfaqrDescUserID := mfaqrFields[2].Descriptor()
-	// mfaqr.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	mfaqr.UserIDValidator = mfaqrDescUserID.Validators[0].(func(string) error)
-	// mfaqrDescID is the schema descriptor for id field.
-	mfaqrDescID := mfaqrFields[0].Descriptor()
-	// mfaqr.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	mfaqr.IDValidator = mfaqrDescID.Validators[0].(func(string) error)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -106,8 +98,4 @@ func init() {
 			return nil
 		}
 	}()
-	// userDescID is the schema descriptor for id field.
-	userDescID := userFields[0].Descriptor()
-	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	user.IDValidator = userDescID.Validators[0].(func(string) error)
 }

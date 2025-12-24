@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"nidan-kai/binid"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
@@ -17,8 +19,7 @@ type MfaQr struct {
 // Fields of the MfaQr.
 func (MfaQr) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").
-			NotEmpty().
+		field.UUID("id", binid.BinId{}).
 			Immutable().
 			Unique().
 			SchemaType(map[string]string{dialect.MySQL: "binary(16)"}),
@@ -27,9 +28,8 @@ func (MfaQr) Fields() []ent.Field {
 			Immutable().
 			MinLen(32).
 			MaxLen(256).
-			SchemaType(map[string]string{dialect.MySQL: "varbinary"}),
-		field.String("user_id").
-			NotEmpty().
+			SchemaType(map[string]string{dialect.MySQL: "varbinary(256)"}),
+		field.UUID("user_id", binid.BinId{}).
 			Immutable().
 			SchemaType(map[string]string{dialect.MySQL: "binary(16)"}),
 	}

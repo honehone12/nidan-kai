@@ -3,6 +3,7 @@
 package mfaqr
 
 import (
+	"nidan-kai/binid"
 	"nidan-kai/ent/predicate"
 	"time"
 
@@ -11,58 +12,48 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id string) predicate.MfaQr {
+func ID(id binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id string) predicate.MfaQr {
+func IDEQ(id binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id string) predicate.MfaQr {
+func IDNEQ(id binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...string) predicate.MfaQr {
+func IDIn(ids ...binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...string) predicate.MfaQr {
+func IDNotIn(ids ...binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id string) predicate.MfaQr {
+func IDGT(id binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id string) predicate.MfaQr {
+func IDGTE(id binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id string) predicate.MfaQr {
+func IDLT(id binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id string) predicate.MfaQr {
+func IDLTE(id binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldLTE(FieldID, id))
-}
-
-// IDEqualFold applies the EqualFold predicate on the ID field.
-func IDEqualFold(id string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldEqualFold(FieldID, id))
-}
-
-// IDContainsFold applies the ContainsFold predicate on the ID field.
-func IDContainsFold(id string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldContainsFold(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -86,7 +77,7 @@ func Secret(v []byte) predicate.MfaQr {
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v string) predicate.MfaQr {
+func UserID(v binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -261,68 +252,23 @@ func SecretLTE(v []byte) predicate.MfaQr {
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v string) predicate.MfaQr {
+func UserIDEQ(v binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v string) predicate.MfaQr {
+func UserIDNEQ(v binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...string) predicate.MfaQr {
+func UserIDIn(vs ...binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...string) predicate.MfaQr {
+func UserIDNotIn(vs ...binid.BinId) predicate.MfaQr {
 	return predicate.MfaQr(sql.FieldNotIn(FieldUserID, vs...))
-}
-
-// UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldGT(FieldUserID, v))
-}
-
-// UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldGTE(FieldUserID, v))
-}
-
-// UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldLT(FieldUserID, v))
-}
-
-// UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldLTE(FieldUserID, v))
-}
-
-// UserIDContains applies the Contains predicate on the "user_id" field.
-func UserIDContains(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldContains(FieldUserID, v))
-}
-
-// UserIDHasPrefix applies the HasPrefix predicate on the "user_id" field.
-func UserIDHasPrefix(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldHasPrefix(FieldUserID, v))
-}
-
-// UserIDHasSuffix applies the HasSuffix predicate on the "user_id" field.
-func UserIDHasSuffix(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldHasSuffix(FieldUserID, v))
-}
-
-// UserIDEqualFold applies the EqualFold predicate on the "user_id" field.
-func UserIDEqualFold(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldEqualFold(FieldUserID, v))
-}
-
-// UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
-func UserIDContainsFold(v string) predicate.MfaQr {
-	return predicate.MfaQr(sql.FieldContainsFold(FieldUserID, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.
