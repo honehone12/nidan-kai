@@ -6,6 +6,7 @@ import (
 	"errors"
 	"nidan-kai/keystore"
 	"os"
+	"unicode/utf8"
 
 	"github.com/zalando/go-keyring"
 )
@@ -37,7 +38,7 @@ func (o OsKeyring) Init() error {
 	}
 
 	_, err = keyring.Get(svc, usr)
-	if err != nil {
+	if errors.Is(err, keyring.ErrNotFound) {
 		b := make([]byte, 32)
 		if _, err := rand.Read(b); err != nil {
 			return err
@@ -47,6 +48,8 @@ func (o OsKeyring) Init() error {
 		if err := keyring.Set(svc, usr, p); err != nil {
 			return err
 		}
+	} else if err != nil {
+		return err
 	}
 
 	return nil
@@ -61,6 +64,10 @@ func (o OsKeyring) GetKey() ([]byte, error) {
 	s, err := keyring.Get(svc, usr)
 	if err != nil {
 		return nil, err
+	}
+
+	if !utf8.ValidString(s) {
+		return nil, errors.New("this is not a utf-8 string")
 	}
 
 	b, err := base64.StdEncoding.DecodeString(s)
