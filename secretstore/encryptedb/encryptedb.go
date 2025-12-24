@@ -32,6 +32,10 @@ func NewEncrypteDB(
 	return &EncrypteDB{ent, keystore}, nil
 }
 
+func (e *EncrypteDB) Close() error {
+	return e.ent.Close()
+}
+
 func (e *EncrypteDB) GetSecret(ctx context.Context, id binid.BinId) ([]byte, error) {
 	enc, err := e.query(ctx, id)
 	if err != nil {

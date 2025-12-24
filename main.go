@@ -1,7 +1,7 @@
 package main
 
 import (
-	"nidan-kai/nidankai"
+	"nidan-kai/app"
 
 	"github.com/joho/godotenv"
 )
@@ -11,5 +11,5 @@ func main() {
 		panic(err)
 	}
 
-	nidankai.Run()
+	app.Run()
 }

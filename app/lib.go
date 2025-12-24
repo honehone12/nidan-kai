@@ -1,4 +1,4 @@
-package nidankai
+package app
 
 import (
 	echo4 "github.com/labstack/echo/v4"
@@ -11,10 +11,15 @@ func Run() {
 	echo.Use(echo4middleware.RequestLogger())
 	echo.Logger.SetLevel(log.INFO)
 	echo.Logger.SetPrefix("MOKNITO")
-	echo.HTTPErrorHandler = func(err error, ctx echo4.Context) {
-		ctx.Logger().Error(err)
-		echo.DefaultHTTPErrorHandler(err, ctx)
+
+	app, err := NewApp()
+	if err != nil {
+		echo.Logger.Fatal(err)
 	}
+	defer app.Close()
+
+	echo.POST("/api/mfa/qr/setup", app.SetUp)
+	echo.POST("/api/mfa/qr/verify", app.Verify)
 
 	if err := echo.Start("localhost:8081"); err != nil {
 		echo.Logger.Fatal(err)

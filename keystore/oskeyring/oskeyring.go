@@ -1,6 +1,7 @@
 package oskeyring
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"nidan-kai/keystore"
@@ -21,7 +22,7 @@ func getEnv() (string, string, error) {
 		return "", "", errors.New("env for service name is not set")
 	}
 
-	usr := os.Getenv("LOCAL_KEYRING_USER")
+	usr := os.Getenv("OS_KEYRING_USER")
 	if len(usr) == 0 {
 		return "", "", errors.New("env for local keyring user is not set")
 	}
@@ -30,8 +31,25 @@ func getEnv() (string, string, error) {
 }
 
 func (o OsKeyring) Init() error {
-	_, _, err := getEnv()
-	return err
+	svc, usr, err := getEnv()
+	if err != nil {
+		return err
+	}
+
+	_, err = keyring.Get(svc, usr)
+	if err != nil {
+		b := make([]byte, 32)
+		if _, err := rand.Read(b); err != nil {
+			return err
+		}
+
+		p := base64.StdEncoding.EncodeToString(b)
+		if err := keyring.Set(svc, usr, p); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (o OsKeyring) GetKey() ([]byte, error) {
