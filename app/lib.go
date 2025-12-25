@@ -10,7 +10,10 @@ func Run() {
 	echo := echo4.New()
 	echo.Use(echo4middleware.RequestLogger())
 	echo.Logger.SetLevel(log.INFO)
-	echo.Logger.SetPrefix("MOKNITO")
+
+	echo.Use(echo4middleware.CORSWithConfig(echo4middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"},
+	}))
 
 	app, err := NewApp()
 	if err != nil {
