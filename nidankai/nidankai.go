@@ -8,13 +8,14 @@ import (
 	"nidan-kai/binid"
 	"nidan-kai/secret"
 	"nidan-kai/secretstore"
+	"strconv"
 
 	"github.com/skip2/go-qrcode"
 )
 
 const QR_SIZE = 256
 const QR_MFA_DIGITS = 6
-const QR_MFA_ARGORITHM = "SHA-1"
+const QR_MFA_ARGORITHM = "SHA1"
 const QR_MFA_PERIOD = 30
 
 type NidanKai struct {
@@ -39,15 +40,14 @@ func (n *NidanKai) SetUp(ctx context.Context, p SetUpParams) (string, error) {
 
 	encSec := secret.SecretEncoder().EncodeToString(sec)
 	path := url.PathEscape(fmt.Sprintf("%s:%s", p.Issuer, p.UserEmail))
-	query := url.QueryEscape(fmt.Sprintf(
-		"secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
-		encSec,
-		p.Issuer,
-		QR_MFA_ARGORITHM,
-		QR_MFA_DIGITS,
-		QR_MFA_PERIOD,
-	))
-	url := fmt.Sprintf("otpauth://totp/%s?%s", path, query)
+	query := url.Values{}
+	query.Set("secret", encSec)
+	query.Set("issuer", p.Issuer)
+	query.Set("algorithm", QR_MFA_ARGORITHM)
+	query.Set("digits", strconv.Itoa(QR_MFA_DIGITS))
+	query.Set("period", strconv.Itoa(QR_MFA_PERIOD))
+	url := fmt.Sprintf("otpauth://totp/%s?%s", path, query.Encode())
+
 	qr, err := qrcode.Encode(url, qrcode.Medium, QR_SIZE)
 	if err != nil {
 		return "", err
