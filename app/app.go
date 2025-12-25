@@ -34,6 +34,10 @@ type VerifyRequest struct {
 }
 
 func NewApp() (*App, error) {
+	// don't inject other than env
+	// to prevent exposing sensitive info
+	// just write within module for testing
+
 	mysqlUri := os.Getenv("MYSQL_URI")
 	if len(mysqlUri) == 0 {
 		return nil, errors.New("could not find env for mysql uri")
