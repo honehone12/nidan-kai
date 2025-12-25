@@ -16,22 +16,18 @@ import (
 )
 
 type EncrypteDB struct {
-	ent      *ent.Client
-	keystore keystore.Keystore
+	mfaQrClient *ent.MfaQrClient
+	keystore    keystore.Keystore
 }
 
 func NewEncrypteDB(
-	ent *ent.Client,
+	mfaQrClient *ent.MfaQrClient,
 	keystore keystore.Keystore,
 ) (*EncrypteDB, error) {
 	if err := keystore.Init(); err != nil {
 		return nil, err
 	}
-	return &EncrypteDB{ent, keystore}, nil
-}
-
-func (e *EncrypteDB) Close() error {
-	return e.ent.Close()
+	return &EncrypteDB{mfaQrClient, keystore}, nil
 }
 
 func (e *EncrypteDB) GetSecret(ctx context.Context, id binid.BinId) ([]byte, error) {
@@ -70,7 +66,7 @@ func (e *EncrypteDB) decrypt(enc []byte) ([]byte, error) {
 }
 
 func (e *EncrypteDB) query(ctx context.Context, userId binid.BinId) ([]byte, error) {
-	mfa, err := e.ent.MfaQr.Query().
+	mfa, err := e.mfaQrClient.Query().
 		Select(
 			mfaqr.FieldSecret,
 		).
@@ -138,7 +134,7 @@ func (e *EncrypteDB) insert(
 		return err
 	}
 
-	return e.ent.MfaQr.Create().
+	return e.mfaQrClient.Create().
 		SetID(id).
 		SetSecret(value).
 		SetUserID(userId).

@@ -118,7 +118,3 @@ func (n *NidanKai) Verify(ctx context.Context, p VerifyParams) (bool, error) {
 
 	return true, nil
 }
-
-func (n *NidanKai) Close() error {
-	return n.secretStore.Close()
-}

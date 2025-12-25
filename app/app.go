@@ -48,7 +48,7 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	secretStore, err := encryptedb.NewEncrypteDB(ent, oskeyring.OsKeyring{})
+	secretStore, err := encryptedb.NewEncrypteDB(ent.MfaQr, oskeyring.OsKeyring{})
 	if err != nil {
 		return nil, err
 	}
@@ -192,5 +192,5 @@ func (a *App) Verify(ctx echo.Context) error {
 }
 
 func (a *App) Close() error {
-	return a.nidanKai.Close()
+	return a.ent.Close()
 }

@@ -12,5 +12,4 @@ type SecretStore interface {
 		id binid.BinId,
 		value []byte,
 	) error
-	Close() error
 }
