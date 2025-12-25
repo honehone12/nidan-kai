@@ -2,14 +2,10 @@ package nidankai
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/base64"
-	"encoding/binary"
 	"errors"
 	"fmt"
-	"math"
 	"net/url"
 	"nidan-kai/binid"
 	"nidan-kai/secret"
@@ -19,13 +15,6 @@ import (
 
 	"github.com/skip2/go-qrcode"
 )
-
-const QR_SIZE = 256
-const QR_MFA_DIGITS = 6
-const QR_MFA_ARGORITHM = "SHA1"
-const QR_MFA_PERIOD = 30
-
-var __QrMfaPowered = uint32(math.Pow10(QR_MFA_DIGITS))
 
 type NidanKai struct {
 	secretStore secretstore.SecretStore
@@ -75,27 +64,6 @@ func (n *NidanKai) SetUp(ctx context.Context, p SetUpParams) (string, error) {
 	return "data:image/png;base64," + encQr, nil
 }
 
-func hotp(secret []byte, nonce [8]byte) (int32, error) {
-	hmac := hmac.New(sha1.New, secret)
-	if n, err := hmac.Write(nonce[:]); err != nil || n != 8 {
-		return 0, errors.New("failed to write noce to hasher")
-	}
-
-	h := hmac.Sum(nil)                // sha1.Size=20
-	offset := int(h[len(h)-1] & 0x0f) // max=15
-	n := binary.BigEndian.Uint32(h[offset : offset+4])
-	n &= 0x7fffffff                   // 0b01111111......
-	code := int32(n % __QrMfaPowered) // max=999999
-	return code, nil
-}
-
-func totp(secret []byte, t, p int64) (int32, error) {
-	counter := uint64(t / p)
-	buf := [8]byte{}
-	binary.BigEndian.PutUint64(buf[:], counter)
-	return hotp(secret, buf)
-}
-
 func (n *NidanKai) Verify(ctx context.Context, p VerifyParams) (bool, error) {
 	if p.Code >= int(__QrMfaPowered) {
 		return false, errors.New("invalid code")
@@ -107,7 +75,7 @@ func (n *NidanKai) Verify(ctx context.Context, p VerifyParams) (bool, error) {
 	}
 
 	now := time.Now().Unix()
-	code, err := totp(sec, now, QR_MFA_PERIOD)
+	code, err := Totp(sec, now, QR_MFA_PERIOD)
 	if err != nil {
 		return false, err
 	}

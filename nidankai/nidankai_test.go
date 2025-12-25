@@ -76,7 +76,7 @@ func Test_hotp(t *testing.T) {
 		t.Run(fmt.Sprintf("count_%d", tc.count), func(t *testing.T) {
 			nonce := [8]byte{}
 			binary.BigEndian.PutUint64(nonce[:], tc.count)
-			code, err := hotp(secret, nonce)
+			code, err := Hotp(secret, nonce)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, code)
 		})
@@ -100,7 +100,7 @@ func Test_totp(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("time_%d", tc.time), func(t *testing.T) {
-			code, err := totp(secret, tc.time, QR_MFA_PERIOD)
+			code, err := Totp(secret, tc.time, QR_MFA_PERIOD)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, code)
 		})
@@ -154,7 +154,7 @@ func TestNidanKai_Verify(t *testing.T) {
 
 	t.Run("should verify correct code successfully", func(t *testing.T) {
 		now := time.Now().Unix()
-		correctCode, err := totp(secret, now, QR_MFA_PERIOD)
+		correctCode, err := Totp(secret, now, QR_MFA_PERIOD)
 		require.NoError(t, err)
 
 		params := VerifyParams{
@@ -169,7 +169,7 @@ func TestNidanKai_Verify(t *testing.T) {
 
 	t.Run("should fail for incorrect code", func(t *testing.T) {
 		now := time.Now().Unix()
-		correctCode, err := totp(secret, now, QR_MFA_PERIOD)
+		correctCode, err := Totp(secret, now, QR_MFA_PERIOD)
 		require.NoError(t, err)
 
 		// Get an incorrect code

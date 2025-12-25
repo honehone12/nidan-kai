@@ -2,11 +2,7 @@ package app
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/binary"
 	"fmt"
-	"math"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -169,7 +165,7 @@ func TestApp_Verify(t *testing.T) {
 
 		// 4. Calculate code using local copy of totp logic
 		now := time.Now().Unix()
-		code, err := totp(secret, now, nidankai.QR_MFA_PERIOD)
+		code, err := nidankai.Totp(secret, now, nidankai.QR_MFA_PERIOD)
 		require.NoError(t, err)
 
 		e := echo.New()
@@ -224,29 +220,4 @@ func TestApp_Verify(t *testing.T) {
 		require.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	})
-}
-
-// --- Local copies of unexported functions from nidankai package for testing ---
-
-var __QrMfaPowered = uint32(math.Pow10(nidankai.QR_MFA_DIGITS))
-
-func hotp(secret []byte, nonce [8]byte) (int32, error) {
-	hmac := hmac.New(sha1.New, secret)
-	if n, err := hmac.Write(nonce[:]); err != nil || n != 8 {
-		return 0, fmt.Errorf("failed to write nonce to hasher: %w", err)
-	}
-
-	h := hmac.Sum(nil)
-	offset := int(h[len(h)-1] & 0x0f)
-	n := binary.BigEndian.Uint32(h[offset : offset+4])
-	n &= 0x7fffffff
-	code := int32(n % __QrMfaPowered)
-	return code, nil
-}
-
-func totp(secret []byte, t, p int64) (int32, error) {
-	counter := uint64(t / p)
-	buf := [8]byte{}
-	binary.BigEndian.PutUint64(buf[:], counter)
-	return hotp(secret, buf)
 }
