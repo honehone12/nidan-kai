@@ -6,7 +6,6 @@ import (
 	"nidan-kai/ent"
 	"nidan-kai/ent/user"
 	"nidan-kai/keystore/oskeyring"
-	"nidan-kai/loginmethod"
 	"nidan-kai/nidankai"
 	"nidan-kai/secretstore/encryptedb"
 	"os"
@@ -109,7 +108,7 @@ func (a *App) SetUp(ctx echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	if u.LoginMethod != loginmethod.LOGIN_METHOD_MFA_QR {
+	if u.LoginMethod != user.LoginMethodMfaQr {
 		err := a.ent.User.Update().
 			Where(user.ID(u.ID)).
 			SetLoginMethod(user.LoginMethodMfaQr).
@@ -168,7 +167,7 @@ func (a *App) Verify(ctx echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	if u.LoginMethod != loginmethod.LOGIN_METHOD_MFA_QR {
+	if u.LoginMethod != user.LoginMethodMfaQr {
 		ctx.Logger().Warn("wrong login method")
 		return echo.ErrBadRequest
 	}

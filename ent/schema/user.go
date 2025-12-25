@@ -2,7 +2,6 @@ package schema
 
 import (
 	"nidan-kai/binid"
-	"nidan-kai/loginmethod"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -32,11 +31,11 @@ func (User) Fields() []ent.Field {
 			Unique(),
 		field.Enum("login_method").
 			Values(
-				loginmethod.LOGIN_METHOD_PASSWORD,
-				loginmethod.LOGIN_METHOD_MFA_QR,
-				loginmethod.LOGIN_METGOD_PASSKEY,
+				"password",
+				"mfa-qr",
+				"passkey",
 			).
-			Default(loginmethod.LOGIN_METHOD_PASSWORD),
+			Default("password"),
 	}
 }
 

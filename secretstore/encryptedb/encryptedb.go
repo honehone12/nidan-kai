@@ -7,9 +7,7 @@ import (
 	"nidan-kai/binid"
 	"nidan-kai/ent"
 	"nidan-kai/ent/mfaqr"
-	"nidan-kai/ent/user"
 	"nidan-kai/keystore"
-	"nidan-kai/loginmethod"
 	"nidan-kai/secret"
 
 	"golang.org/x/crypto/chacha20poly1305"
@@ -56,7 +54,7 @@ func (e *EncrypteDB) decrypt(enc []byte) ([]byte, error) {
 		return nil, err
 	}
 	nonceSize := chacha.NonceSize()
-	if len(enc) >= nonceSize {
+	if len(enc) <= nonceSize {
 		return nil, errors.New("unexpected encryptedd secret size")
 	}
 
@@ -72,20 +70,18 @@ func (e *EncrypteDB) decrypt(enc []byte) ([]byte, error) {
 }
 
 func (e *EncrypteDB) query(ctx context.Context, userId binid.BinId) ([]byte, error) {
-	u, err := e.ent.User.Query().
-		Select(user.FieldLoginMethod).
-		Where(
-			user.ID(userId),
-			user.DeletedAtIsNil(),
+	mfa, err := e.ent.MfaQr.Query().
+		Select(
+			mfaqr.FieldSecret,
 		).
-		WithMfaQrs(func(q *ent.MfaQrQuery) {
-			q.Select(mfaqr.FieldSecret).
-				Order(sql.OrderByField(
-					mfaqr.FieldCreatedAt,
-					sql.OrderDesc(),
-				).ToFunc()).
-				Limit(1)
-		}).
+		Where(
+			mfaqr.UserID(userId),
+			mfaqr.DeletedAtIsNil(),
+		).
+		Order(
+			sql.OrderByField(mfaqr.FieldCreatedAt, sql.OrderDesc()).ToFunc(),
+		).
+		Limit(1).
 		Only(ctx)
 	if err != nil {
 		// we can return NotFound as err
@@ -93,14 +89,8 @@ func (e *EncrypteDB) query(ctx context.Context, userId binid.BinId) ([]byte, err
 		// and NotFound should be handled there
 		return nil, err
 	}
-	if u.LoginMethod != loginmethod.LOGIN_METHOD_MFA_QR {
-		return nil, errors.New("unexpected login method")
-	}
-	if len(u.Edges.MfaQrs) == 0 {
-		return nil, errors.New("mfaqr edge is empty")
-	}
 
-	return u.Edges.MfaQrs[0].Secret, nil
+	return mfa.Secret, nil
 }
 
 func (e *EncrypteDB) SetSecret(
@@ -127,13 +117,15 @@ func (e *EncrypteDB) encrypt(value []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	nonce := make([]byte, chacha.NonceSize())
-	_, err = rand.Read(nonce)
+	nonceSize := chacha.NonceSize()
+	cipher := make([]byte, nonceSize, nonceSize+len(value)+chacha.Overhead())
+	_, err = rand.Read(cipher)
 	if err != nil {
 		return nil, err
 	}
 
-	return chacha.Seal(nil, nonce, value, nil), nil
+	enc := chacha.Seal(cipher, cipher[:nonceSize], value, nil)
+	return enc, nil
 }
 
 func (e *EncrypteDB) insert(
