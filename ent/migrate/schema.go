@@ -52,7 +52,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 256},
-		{Name: "login_method", Type: field.TypeEnum, Enums: []string{"password", "mfa-qr", "passkey"}, Default: "mfa-qr"},
+		{Name: "login_method", Type: field.TypeEnum, Enums: []string{"password", "mfa-qr", "passkey"}, Default: "password"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

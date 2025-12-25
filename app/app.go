@@ -10,6 +10,7 @@ import (
 	"nidan-kai/nidankai"
 	"nidan-kai/secretstore/encryptedb"
 	"os"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -18,6 +19,7 @@ import (
 )
 
 type App struct {
+	name      string
 	ent       *ent.Client
 	nidanKai  *nidankai.NidanKai
 	validator *validator.Validate
@@ -25,6 +27,11 @@ type App struct {
 
 type SetUpRequest struct {
 	Email string `form:"email" validate:"required,email,max=256"`
+}
+
+type VerifyRequest struct {
+	Email string `form:"email" validate:"required,email,max=256"`
+	Code  string `form:"code" validate:"required,number,len=6"`
 }
 
 func NewApp() (*App, error) {
@@ -53,8 +60,10 @@ func NewApp() (*App, error) {
 	}
 
 	validator := validator.New()
+	name := "NidanKai"
 
 	return &App{
+		name,
 		ent,
 		nidanKai,
 		validator,
@@ -77,6 +86,66 @@ func (a *App) SetUp(ctx echo.Context) error {
 	form := SetUpRequest{}
 
 	if err := a.bind(ctx, &form); err != nil {
+		ctx.Logger().Warn(err)
+		return echo.ErrBadRequest
+	}
+
+	c := ctx.Request().Context()
+	u, err := a.ent.User.Query().
+		Select(
+			user.FieldID,
+			user.FieldLoginMethod,
+		).
+		Where(
+			user.Email(form.Email),
+			user.DeletedAtIsNil(),
+		).
+		Only(c)
+	if ent.IsNotFound(err) {
+		ctx.Logger().Warn("could not find user")
+		return echo.ErrBadRequest
+	} else if err != nil {
+		ctx.Logger().Error(err)
+		return echo.ErrInternalServerError
+	}
+
+	if u.LoginMethod != loginmethod.LOGIN_METHOD_MFA_QR {
+		err := a.ent.User.Update().
+			Where(user.ID(u.ID)).
+			SetLoginMethod(user.LoginMethodMfaQr).
+			Exec(c)
+		if err != nil {
+			ctx.Logger().Error(err)
+			return echo.ErrInternalServerError
+		}
+	}
+
+	qr, err := a.nidanKai.SetUp(
+		ctx.Request().Context(),
+		nidankai.SetUpParams{
+			Issuer: a.name,
+			UserId: u.ID,
+			Email:  form.Email,
+		},
+	)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return echo.ErrInternalServerError
+	}
+
+	return ctx.String(http.StatusOK, qr)
+}
+
+func (a *App) Verify(ctx echo.Context) error {
+	form := VerifyRequest{}
+
+	if err := a.bind(ctx, &form); err != nil {
+		ctx.Logger().Warn(err)
+		return echo.ErrBadRequest
+	}
+
+	c, err := strconv.Atoi(form.Code)
+	if err != nil {
 		ctx.Logger().Warn(err)
 		return echo.ErrBadRequest
 	}
@@ -104,25 +173,23 @@ func (a *App) SetUp(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	qr, err := a.nidanKai.SetUp(
+	ok, err := a.nidanKai.Verify(
 		ctx.Request().Context(),
-		nidankai.SetUpParams{
-			Issuer:    "NidanKai",
-			UserId:    u.ID,
-			UserEmail: form.Email,
+		nidankai.VerifyParams{
+			UserId: u.ID,
+			Code:   c,
 		},
 	)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return echo.ErrInternalServerError
 	}
+	if !ok {
+		ctx.Logger().Warn("invalid code")
+		return echo.ErrBadRequest
+	}
 
-	return ctx.String(http.StatusOK, qr)
-}
-
-func (a *App) Verify(ctx echo.Context) error {
-
-	return echo.ErrNotImplemented
+	return ctx.NoContent(http.StatusOK)
 }
 
 func (a *App) Close() error {

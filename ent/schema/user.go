@@ -36,7 +36,7 @@ func (User) Fields() []ent.Field {
 				loginmethod.LOGIN_METHOD_MFA_QR,
 				loginmethod.LOGIN_METGOD_PASSKEY,
 			).
-			Default(loginmethod.LOGIN_METHOD_MFA_QR),
+			Default(loginmethod.LOGIN_METHOD_PASSWORD),
 	}
 }
 

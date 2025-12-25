@@ -77,8 +77,8 @@ var (
 // LoginMethod defines the type for the "login_method" enum field.
 type LoginMethod string
 
-// LoginMethodMfaQr is the default value of the LoginMethod enum.
-const DefaultLoginMethod = LoginMethodMfaQr
+// LoginMethodPassword is the default value of the LoginMethod enum.
+const DefaultLoginMethod = LoginMethodPassword
 
 // LoginMethod values.
 const (
