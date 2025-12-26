@@ -26,7 +26,7 @@ func (MfaQr) Fields() []ent.Field {
 		field.Bytes("secret").
 			NotEmpty().
 			Immutable().
-			MinLen(20).
+			MinLen(60).
 			MaxLen(256).
 			SchemaType(map[string]string{dialect.MySQL: "varbinary(256)"}),
 		field.UUID("user_id", binid.BinId{}).
