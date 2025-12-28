@@ -29,8 +29,12 @@ func Hotp(secret []byte, nonce [8]byte) (int32, error) {
 	return code, nil
 }
 
-func Totp(secret []byte, t, p int64) (int32, error) {
-	counter := uint64(t / p)
+func Totp(secret []byte, t int64, p uint32) (int32, error) {
+	if p == 0 {
+		return 0, errors.New("period should not be 0")
+	}
+
+	counter := uint64(t / int64(p))
 	buf := [8]byte{}
 	binary.BigEndian.PutUint64(buf[:], counter)
 	return Hotp(secret, buf)
