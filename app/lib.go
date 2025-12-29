@@ -1,6 +1,8 @@
 package app
 
 import (
+	"net/url"
+
 	echo4 "github.com/labstack/echo/v4"
 	echo4middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -11,9 +13,17 @@ func Run() {
 	echo.Use(echo4middleware.RequestLogger())
 	echo.Logger.SetLevel(log.INFO)
 
-	echo.Use(echo4middleware.CORSWithConfig(echo4middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"},
-	}))
+	uiUrl, err := url.Parse("http://localhost:3000")
+	if err != nil {
+		echo.Logger.Fatal(err)
+	}
+
+	balancer := echo4middleware.NewRoundRobinBalancer(
+		[]*echo4middleware.ProxyTarget{{
+			Name: "ui",
+			URL:  uiUrl,
+		}})
+	echo.Use(echo4middleware.Proxy(balancer))
 
 	app, err := NewApp()
 	if err != nil {
