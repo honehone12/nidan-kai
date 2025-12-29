@@ -17,13 +17,11 @@ func Run() {
 	if err != nil {
 		echo.Logger.Fatal(err)
 	}
-
 	balancer := echo4middleware.NewRoundRobinBalancer(
 		[]*echo4middleware.ProxyTarget{{
 			Name: "ui",
 			URL:  uiUrl,
 		}})
-	echo.Use(echo4middleware.Proxy(balancer))
 
 	app, err := NewApp()
 	if err != nil {
@@ -33,6 +31,8 @@ func Run() {
 
 	echo.POST("/api/mfa/qr/setup", app.SetUp)
 	echo.POST("/api/mfa/qr/verify", app.Verify)
+
+	echo.Use(echo4middleware.Proxy(balancer))
 
 	if err := echo.Start("localhost:8081"); err != nil {
 		echo.Logger.Fatal(err)
