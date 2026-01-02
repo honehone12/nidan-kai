@@ -7,7 +7,10 @@ import (
 	"nidan-kai/ent/user"
 	"nidan-kai/keystore/oskeyring"
 	"nidan-kai/nidankai"
+	"nidan-kai/secret"
+	"nidan-kai/secretstore"
 	"nidan-kai/secretstore/encryptedb"
+
 	"os"
 	"strconv"
 
@@ -18,10 +21,11 @@ import (
 )
 
 type App struct {
-	name      string
-	ent       *ent.Client
-	nidanKai  *nidankai.NidanKai
-	validator *validator.Validate
+	appName string
+
+	ent         *ent.Client
+	validator   *validator.Validate
+	secretStore secretstore.SecretStore
 }
 
 type SetUpRequest struct {
@@ -57,19 +61,14 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	nidanKai, err := nidankai.NewNidankai(secretStore)
-	if err != nil {
-		return nil, err
-	}
-
+	appName := "NidanKai"
 	validator := validator.New()
-	name := "NidanKai"
 
 	return &App{
-		name,
+		appName,
 		ent,
-		nidanKai,
 		validator,
+		secretStore,
 	}, nil
 }
 
@@ -123,14 +122,18 @@ func (a *App) SetUp(ctx echo.Context) error {
 		}
 	}
 
-	qr, err := a.nidanKai.SetUp(
-		ctx.Request().Context(),
-		nidankai.SetUpParams{
-			Issuer: a.name,
-			UserId: u.ID,
-			Email:  form.Email,
-		},
-	)
+	sec, err := secret.GenerateSecret()
+	if err != nil {
+		ctx.Logger().Error(err)
+		return echo.ErrInternalServerError
+	}
+
+	if err := a.secretStore.SetSecret(c, u.ID, sec); err != nil {
+		ctx.Logger().Error(err)
+		return echo.ErrInternalServerError
+	}
+
+	qr, err := nidankai.SetUp(a.appName, form.Email, sec)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return echo.ErrInternalServerError
@@ -147,12 +150,13 @@ func (a *App) Verify(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	c, err := strconv.Atoi(form.Code)
+	code, err := strconv.Atoi(form.Code)
 	if err != nil {
 		ctx.Logger().Warn(err)
 		return echo.ErrBadRequest
 	}
 
+	c := ctx.Request().Context()
 	u, err := a.ent.User.Query().
 		Select(
 			user.FieldID,
@@ -162,7 +166,7 @@ func (a *App) Verify(ctx echo.Context) error {
 			user.Email(form.Email),
 			user.DeletedAtIsNil(),
 		).
-		Only(ctx.Request().Context())
+		Only(c)
 	if ent.IsNotFound(err) {
 		ctx.Logger().Warn("could not find user")
 		return echo.ErrBadRequest
@@ -176,13 +180,13 @@ func (a *App) Verify(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	ok, err := a.nidanKai.Verify(
-		ctx.Request().Context(),
-		nidankai.VerifyParams{
-			UserId: u.ID,
-			Code:   c,
-		},
-	)
+	sec, err := a.secretStore.GetSecret(c, u.ID)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return echo.ErrInternalServerError
+	}
+
+	ok, err := nidankai.Verify(code, sec)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return echo.ErrInternalServerError

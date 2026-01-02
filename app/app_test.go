@@ -11,6 +11,7 @@ import (
 	"nidan-kai/ent/enttest"
 	"nidan-kai/ent/user"
 	"nidan-kai/nidankai"
+	"nidan-kai/secret"
 	"nidan-kai/secretstore"
 	"nidan-kai/secretstore/encryptedb"
 	"strings"
@@ -59,16 +60,12 @@ func setupAppTest(t *testing.T) (*App, *ent.Client, secretstore.SecretStore) {
 	secretStore, err := encryptedb.NewEncrypteDB(client.MfaQr, mockKS)
 	require.NoError(t, err)
 
-	// 4. Real NidanKai with real SecretStore
-	nidanKaiService, err := nidankai.NewNidankai(secretStore)
-	require.NoError(t, err)
-
 	// 5. App instance with all test components
 	app := &App{
-		name:      "TestApp",
-		ent:       client,
-		nidanKai:  nidanKaiService,
-		validator: validator.New(),
+		appName:     "TestApp",
+		ent:         client,
+		secretStore: secretStore,
+		validator:   validator.New(),
 	}
 
 	return app, client, secretStore
@@ -149,13 +146,10 @@ func TestApp_Verify(t *testing.T) {
 		Save(ctx)
 	require.NoError(t, err)
 
-	// 2. Manually set up a secret for them by calling the real SetUp logic
-	params := nidankai.SetUpParams{
-		Issuer: app.name,
-		UserId: userID,
-		Email:  "verify@example.com",
-	}
-	_, err = app.nidanKai.SetUp(ctx, params)
+	sec, err := secret.GenerateSecret()
+	require.NoError(t, err)
+	email := "verify@example.com"
+	_, err = nidankai.SetUp(app.appName, email, sec)
 	require.NoError(t, err)
 
 	t.Run("should verify successfully with correct code", func(t *testing.T) {

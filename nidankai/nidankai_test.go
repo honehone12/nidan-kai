@@ -45,14 +45,6 @@ func (m *mockSecretStore) SetSecret(ctx context.Context, id binid.BinId, value [
 	return nil
 }
 
-func TestNewNidankai(t *testing.T) {
-	mockStore := newMockSecretStore()
-	n, err := NewNidankai(mockStore)
-	require.NoError(t, err)
-	assert.NotNil(t, n)
-	assert.Equal(t, mockStore, n.secretStore)
-}
-
 func Test_hotp(t *testing.T) {
 	// Test cases from RFC 4226 Appendix D
 	secret := []byte("12345678901234567890")
@@ -110,17 +102,13 @@ func Test_totp(t *testing.T) {
 func TestNidanKai_SetUp(t *testing.T) {
 	ctx := context.Background()
 	mockStore := newMockSecretStore()
-	n, _ := NewNidankai(mockStore)
-
+	secret, _ := secret.GenerateSecret()
 	userID, _ := binid.NewRandom()
-	params := SetUpParams{
-		Issuer: "TestApp",
-		UserId: userID,
-		Email:  "test@example.com",
-	}
+	issuer := "TestApp"
+	email := "test@example.com"
 
 	t.Run("should set up successfully", func(t *testing.T) {
-		qrString, err := n.SetUp(ctx, params)
+		qrString, err := SetUp(issuer, email, secret)
 		require.NoError(t, err)
 
 		// Check QR string format
@@ -133,21 +121,11 @@ func TestNidanKai_SetUp(t *testing.T) {
 		assert.NotNil(t, storedSecret)
 		assert.Len(t, storedSecret, 20) // secret.SECRET_LEN
 	})
-
-	t.Run("should fail if secret store fails", func(t *testing.T) {
-		mockStore.err = assert.AnError
-		_, err := n.SetUp(ctx, params)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
-		mockStore.err = nil // reset
-	})
 }
 
 func TestNidanKai_Verify(t *testing.T) {
 	ctx := context.Background()
 	mockStore := newMockSecretStore()
-	n, _ := NewNidankai(mockStore)
-
 	userID, _ := binid.NewRandom()
 	secret, _ := secret.GenerateSecret()
 	mockStore.SetSecret(ctx, userID, secret)
@@ -157,12 +135,7 @@ func TestNidanKai_Verify(t *testing.T) {
 		correctCode, err := Totp(secret, now, QR_MFA_PERIOD)
 		require.NoError(t, err)
 
-		params := VerifyParams{
-			UserId: userID,
-			Code:   int(correctCode),
-		}
-
-		ok, err := n.Verify(ctx, params)
+		ok, err := Verify(int(correctCode), secret)
 		require.NoError(t, err)
 		assert.True(t, ok)
 	})
@@ -175,36 +148,15 @@ func TestNidanKai_Verify(t *testing.T) {
 		// Get an incorrect code
 		incorrectCode := (correctCode + 1) % 1000000
 
-		params := VerifyParams{
-			UserId: userID,
-			Code:   int(incorrectCode),
-		}
-
-		ok, err := n.Verify(ctx, params)
+		ok, err := Verify(int(incorrectCode), secret)
 		require.NoError(t, err)
 		assert.False(t, ok)
 	})
 
 	t.Run("should return error for invalid code format", func(t *testing.T) {
-		params := VerifyParams{
-			UserId: userID,
-			Code:   1000000, // Code is too large
-		}
-		ok, err := n.Verify(ctx, params)
+		ok, err := Verify(1000000, secret)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid code")
-		assert.False(t, ok)
-	})
-
-	t.Run("should return error if secret not found", func(t *testing.T) {
-		nonExistentID, _ := binid.NewRandom()
-		params := VerifyParams{
-			UserId: nonExistentID,
-			Code:   123456,
-		}
-		ok, err := n.Verify(ctx, params)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "secret not found")
 		assert.False(t, ok)
 	})
 }

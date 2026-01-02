@@ -74,15 +74,10 @@ func (e *EncrypteDB) query(ctx context.Context, userId binid.BinId) ([]byte, err
 			mfaqr.UserID(userId),
 			mfaqr.DeletedAtIsNil(),
 		).
-		Order(
-			sql.OrderByField(mfaqr.FieldCreatedAt, sql.OrderDesc()).ToFunc(),
-		).
+		Order(sql.OrderByField(mfaqr.FieldCreatedAt, sql.OrderDesc()).ToFunc()).
 		Limit(1).
 		First(ctx)
 	if err != nil {
-		// we can return NotFound as err
-		// because id should be queried by email
-		// and NotFound should be handled there
 		return nil, err
 	}
 
