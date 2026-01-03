@@ -10,6 +10,7 @@ import (
 	"nidan-kai/secret"
 	"nidan-kai/secretstore"
 	"nidan-kai/secretstore/encryptedb"
+	"strings"
 
 	"os"
 	"strconv"
@@ -73,6 +74,12 @@ func NewApp() (*App, error) {
 }
 
 func (a *App) bind(ctx echo.Context, target any) error {
+	raw, _, _ := strings.Cut(ctx.Request().Header.Get("Content-Type"), ";")
+	contentType := strings.TrimSpace(raw)
+	if contentType != echo.MIMEApplicationForm {
+		return errors.New("unexpected mime type")
+	}
+
 	if err := ctx.Bind(target); err != nil {
 		return err
 	}
