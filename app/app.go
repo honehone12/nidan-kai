@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"nidan-kai/ent"
 	"nidan-kai/ent/user"
-	"nidan-kai/keystore/oskeyring"
+	"nidan-kai/keystore/envkey"
 	"nidan-kai/nidankai"
 	"nidan-kai/secret"
 	"nidan-kai/secretstore"
@@ -57,7 +57,7 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	secretStore, err := encryptedb.NewEncrypteDB(ent.MfaQr, oskeyring.OsKeyring{})
+	secretStore, err := encryptedb.NewEncrypteDB(ent.MfaQr, envkey.EnvKey{})
 	if err != nil {
 		return nil, err
 	}

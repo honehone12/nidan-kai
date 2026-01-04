@@ -66,7 +66,7 @@ func (o OsKeyring) GetKey() ([]byte, error) {
 		return nil, err
 	}
 
-	// this is actually bypassed whem it's utf-16 etc
+	// this is actually bypassed when it's utf-16 etc
 	if !utf8.ValidString(s) {
 		return nil, errors.New("this is not a utf-8 string")
 	}
