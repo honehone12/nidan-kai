@@ -3,18 +3,20 @@ package app
 import (
 	"errors"
 	"net/http"
+	"nidan-kai/binid"
 	"nidan-kai/ent"
+	"nidan-kai/ent/mfaqr"
 	"nidan-kai/ent/user"
+	"nidan-kai/keystore"
 	"nidan-kai/keystore/envkey"
 	"nidan-kai/nidankai"
 	"nidan-kai/secret"
-	"nidan-kai/secretstore"
-	"nidan-kai/secretstore/encryptedb"
 	"strings"
 
 	"os"
 	"strconv"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 
@@ -24,9 +26,9 @@ import (
 type App struct {
 	appName string
 
-	ent         *ent.Client
-	validator   *validator.Validate
-	secretStore secretstore.SecretStore
+	ent       *ent.Client
+	validator *validator.Validate
+	keystore  keystore.Keystore
 }
 
 type SetUpRequest struct {
@@ -57,19 +59,11 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	secretStore, err := encryptedb.NewEncrypteDB(ent.MfaQr, envkey.EnvKey{})
-	if err != nil {
-		return nil, err
-	}
-
-	appName := "NidanKai"
-	validator := validator.New()
-
 	return &App{
-		appName,
-		ent,
-		validator,
-		secretStore,
+		appName:   "NidanKai",
+		ent:       ent,
+		validator: validator.New(),
+		keystore:  envkey.EnvKey{},
 	}, nil
 }
 
@@ -129,13 +123,24 @@ func (a *App) SetUp(ctx echo.Context) error {
 		}
 	}
 
-	sec, err := secret.GenerateSecret()
+	sec, err := secret.GenerateEncryptedSecret(a.keystore)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return echo.ErrInternalServerError
 	}
 
-	if err := a.secretStore.SetSecret(c, u.ID, sec); err != nil {
+	secId, err := binid.NewSequential()
+	if err != nil {
+		ctx.Logger().Error(err)
+		return echo.ErrInternalServerError
+	}
+
+	err = a.ent.MfaQr.Create().
+		SetID(secId).
+		SetSecret(sec).
+		SetUserID(u.ID).
+		Exec(c)
+	if err != nil {
 		ctx.Logger().Error(err)
 		return echo.ErrInternalServerError
 	}
@@ -187,7 +192,23 @@ func (a *App) Verify(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	sec, err := a.secretStore.GetSecret(c, u.ID)
+	mfa, err := a.ent.MfaQr.Query().
+		Select(
+			mfaqr.FieldSecret,
+		).
+		Where(
+			mfaqr.UserID(u.ID),
+			mfaqr.DeletedAtIsNil(),
+		).
+		Order(sql.OrderByField(mfaqr.FieldCreatedAt, sql.OrderDesc()).ToFunc()).
+		Limit(1).
+		First(c)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return echo.ErrInternalServerError
+	}
+
+	sec, err := secret.Decrypt(mfa.Secret, a.keystore)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return echo.ErrInternalServerError
