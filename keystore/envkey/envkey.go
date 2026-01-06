@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 )
 
+// read "ENV_SECRET_KEY"
 type EnvKey struct{}
 
 func getEnv() (string, error) {

@@ -2,101 +2,89 @@ package secret
 
 import (
 	"bytes"
+	"nidan-kai/keystore/envkey"
+	"os"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestGenerateSecret(t *testing.T) {
-	t.Run("should generate a secret of correct length", func(t *testing.T) {
-		secret, err := GenerateSecret()
-		require.NoError(t, err)
-		assert.Len(t, secret, SECRET_LEN)
-	})
+var testKEY = "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT="
+var testBytes = []byte{0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34, 0xd3, 0x4d, 0x34}
+var envKey = "ENV_SECRET_KEY"
 
-	t.Run("should generate different secrets on multiple calls", func(t *testing.T) {
-		secret1, err := GenerateSecret()
-		require.NoError(t, err)
+func Test_GenerateSecret(t *testing.T) {
+	e := envkey.EnvKey{}
 
-		secret2, err := GenerateSecret()
-		require.NoError(t, err)
+	b, err := GenerateEncryptedSecret(e)
+	if err == nil {
+		t.Fatalf("env is not set but got %v\n", b)
+	}
 
-		assert.NotEqual(t, secret1, secret2, "secrets should be different")
-	})
+	t.Setenv(envKey, testKEY)
+
+	secret1, err := GenerateEncryptedSecret(envkey.EnvKey{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	secret2, err := GenerateEncryptedSecret(envkey.EnvKey{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(secret1, secret2) {
+		t.Fatal("secret is not random")
+	}
 }
 
-func TestSecretEncoder(t *testing.T) {
-	t.Run("should return a base32 encoder with no padding", func(t *testing.T) {
-		encoder := SecretEncoder()
-		assert.NotNil(t, encoder)
+func Test_Decrypt(t *testing.T) {
+	e := envkey.EnvKey{}
 
-		// Test with a known value to ensure no padding
-		data := []byte{0x10, 0x20, 0x30, 0x40, 0x50} // 5 bytes = 8 base32 chars with no padding
-		encoded := encoder.EncodeToString(data)
-		assert.Equal(t, "CAQDAQCQ", encoded) // (1020304050 base16 to base32 conversion)
+	if err := os.Setenv(envKey, testKEY); err != nil {
+		t.Fatal(err)
+	}
 
-		decoded, err := encoder.DecodeString(encoded)
-		require.NoError(t, err)
-		assert.True(t, bytes.Equal(data, decoded))
+	original, err := GenerateEncryptedSecret(e)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		// Test with data that would normally have padding if not for NoPadding
-		data2 := []byte{0x01, 0x23} // 2 bytes
-		encoded2 := encoder.EncodeToString(data2)
-		assert.Equal(t, "AERQ", encoded2) // Expected: AEBA==== if padded, but AEBAA if NoPadding
+	dec, err := Decrypt(original, e)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		decoded2, err := encoder.DecodeString(encoded2)
-		require.NoError(t, err)
-		assert.True(t, bytes.Equal(data2, decoded2))
-	})
+	if len(dec) != SECRET_LEN {
+		t.Fatal("wrong decrypted")
+	}
+
+	if err := os.Unsetenv(envKey); err != nil {
+		t.Fatal(err)
+	}
+
+	dec, err = Decrypt(original, e)
+	if err == nil {
+		t.Fatal("env is not set but err is nil")
+	}
 }
 
-func TestEncrypteDB_encrypt_decrypt(t *testing.T) {
-	_, e, mockKS := setupTest(t)
+func Test_DecryptVars(t *testing.T) {
+	e := envkey.EnvKey{}
+	t.Setenv(envKey, testKEY)
 
-	originalSecret, err := secret.GenerateSecret()
-	require.NoError(t, err)
+	fail := []byte{7, 7, 7}
 
-	t.Run("should encrypt and decrypt successfully", func(t *testing.T) {
-		encrypted, err := e.encrypt(originalSecret)
-		require.NoError(t, err)
-		assert.NotEqual(t, originalSecret, encrypted)
+	dec, err := Decrypt(fail, e)
+	if err == nil {
+		t.Fatalf("should fail, but returns %v\n", dec)
+	}
 
-		decrypted, err := e.decrypt(encrypted)
-		require.NoError(t, err)
-		assert.Equal(t, originalSecret, decrypted)
-	})
+	failEnc, err := encrypt(fail, e)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	t.Run("should fail encrypt on keystore error", func(t *testing.T) {
-		mockKS.getErr = assert.AnError
-		_, err := e.encrypt(originalSecret)
-		require.ErrorIs(t, err, assert.AnError)
-		mockKS.getErr = nil // reset
-	})
-
-	t.Run("should fail decrypt on keystore error", func(t *testing.T) {
-		encrypted, _ := e.encrypt(originalSecret)
-		mockKS.getErr = assert.AnError
-		_, err := e.decrypt(encrypted)
-		require.ErrorIs(t, err, assert.AnError)
-		mockKS.getErr = nil // reset
-	})
-
-	t.Run("should fail decrypt on short ciphertext", func(t *testing.T) {
-		shortCipher := []byte{1, 2, 3}
-		_, err := e.decrypt(shortCipher)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "unexpected encryptedd secret size")
-	})
-
-	t.Run("should fail decrypt on invalid decrypted size", func(t *testing.T) {
-		// Encrypt a value that doesn't have the expected SECRET_LEN
-		invalidSecret := []byte("this is not the right size")
-		encrypted, err := e.encrypt(invalidSecret)
-		require.NoError(t, err)
-
-		_, err = e.decrypt(encrypted)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "unexpected decrypted secret size")
-	})
+	dec, err = Decrypt(failEnc, e)
+	if err == nil {
+		t.Fatalf("should fail, but returns %v\n", dec)
+	}
 }

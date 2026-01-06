@@ -11,6 +11,10 @@ import (
 
 const SECRET_LEN = 20 // (20 / 5 * 8 = 32)
 
+func SecretEncoder() *base32.Encoding {
+	return base32.StdEncoding.WithPadding(base32.NoPadding)
+}
+
 func GenerateEncryptedSecret(keystore keystore.Keystore) ([]byte, error) {
 	sec := make([]byte, SECRET_LEN)
 	_, err := rand.Read(sec)
@@ -18,14 +22,10 @@ func GenerateEncryptedSecret(keystore keystore.Keystore) ([]byte, error) {
 		return nil, err
 	}
 
-	return Encrypt(sec, keystore)
+	return encrypt(sec, keystore)
 }
 
-func SecretEncoder() *base32.Encoding {
-	return base32.StdEncoding.WithPadding(base32.NoPadding)
-}
-
-func Encrypt(value []byte, keystore keystore.Keystore) ([]byte, error) {
+func encrypt(value []byte, keystore keystore.Keystore) ([]byte, error) {
 	key, err := keystore.GetKey()
 	if err != nil {
 		return nil, err

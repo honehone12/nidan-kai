@@ -11,6 +11,7 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
+// read from "SERVICE_NAME":"OS_KEYRING_USER"
 type OsKeyring struct{}
 
 func getEnv() (string, string, error) {
